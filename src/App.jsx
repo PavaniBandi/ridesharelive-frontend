@@ -190,7 +190,7 @@ function App() {
       {showAuth && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-8 w-full max-w-md relative">
-            <h2 text-2xl font-bold mb-4>
+            <h2 className="text-2xl font-bold mb-4">
               {authMode === "login" ? "Login" : "Sign Up"}
             </h2>
             <div className="flex gap-2 mb-4">
