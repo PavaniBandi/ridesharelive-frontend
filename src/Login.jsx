@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiRequest } from "./api";
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -8,6 +9,16 @@ export default function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    try {
+      const data = await apiRequest("/auth/login", "POST", { email, password });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("name", data.name);
+      localStorage.setItem("userId", data.id);
+      onLogin && onLogin(data);
+    } catch (err) {
+      setError("Signup failed" + err.message);
+    }
   };
 
   return (

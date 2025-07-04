@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiRequest } from "./api.jsx";
 
 export default function Signup({ onSignup }) {
   const [name, setName] = useState("");
@@ -12,6 +13,18 @@ export default function Signup({ onSignup }) {
     e.preventDefault();
     setError("");
     setSuccess("");
+    try {
+      await apiRequest("/auth/signup", "POST", {
+        name,
+        email,
+        password,
+        role,
+      });
+      setSuccess("Signup Successful");
+      onSignup && onSignup(); //handleSignup()
+    } catch (err) {
+      setError("Signup failed" + err.message);
+    }
   };
 
   return (
