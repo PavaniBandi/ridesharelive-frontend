@@ -6,10 +6,25 @@ export default function RideHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const token = localStorage.getItem("token");
+
   const fetchRides = async () => {
     setLoading(true);
     setError("");
+    try {
+      const data = await apiRequest("/rides/history", "Get", null, token);
+      setRides(data);
+    } catch (err) {
+      setError("Failed " + err.message);
+    }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchRides();
+    const interval = setInterval(fetchRides, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (loading) return <div>Loading ride history...</div>;
   if (error) return <div className="text-red-500 mb-4">{error}</div>;

@@ -12,6 +12,53 @@ export default function DriverDashboard() {
   const myName = localStorage.getItem("name");
   const myUserId = localStorage.getItem("userId");
 
+  const fetchRides = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const active = await apiRequest("/rides/requested", "GET", null, token);
+      setActiveRides(active);
+      const all = await apiRequest("/rides/history", "GET", null, token);
+      setHistory(
+        all.filter(
+          (r) => r.driverId && myUserId && r.driverId.toString() === myUserId
+        )
+      );
+    } catch (err) {
+      setError("Failed " + err.message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRides();
+    const interval = setInterval(fetchRides, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const acceptRide = async (ride) => {
+    try {
+      await apiRequest(
+        `/rides/status/${ride.id}`,
+        "POST",
+        { status: "ACCEPTED", driverId: myUserId },
+        token
+      );
+      fetchRides();
+    } catch (err) {
+      setError("Failed " + err.message);
+    }
+  };
+
+  const updateStatus = async (rideId, status) => {
+    try {
+      await apiRequest(`/rides/status/${rideId}`, "POST", { status }, token);
+      fetchRides();
+    } catch (err) {
+      setError("Failed " + err.message);
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       {/* Welcome Banner */}

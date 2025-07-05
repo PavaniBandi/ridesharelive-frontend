@@ -7,10 +7,32 @@ import { apiRequest } from "../api.jsx";
 export default function RiderDashboard() {
   const [rides, setRides] = useState([]);
   const [currentRide, setCurrentRide] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const handleRefresh = () => {};
+  const token = localStorage.getItem("token");
+
+  const fetchRides = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await apiRequest("/rides/history", "Get", null, token);
+      setRides(data);
+      const active = data.find((r) => r.status !== "COMPLETED");
+      setCurrentRide(active || null);
+    } catch (err) {
+      setError("failed ", err.message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRides();
+  }, []);
+
+  const handleRefresh = () => {
+    fetchRides();
+  };
 
   return (
     <div className="container mx-auto py-8">

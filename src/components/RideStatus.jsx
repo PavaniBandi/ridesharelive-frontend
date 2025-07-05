@@ -4,6 +4,35 @@ import { apiRequest } from "../api.jsx";
 export default function RideStatus({ ride, onComplete }) {
   const [currentRide, setCurrentRide] = useState(ride);
 
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    setCurrentRide(ride);
+    if (!ride) return;
+    const fetchStatus = async () => {
+      try {
+        const data = await apiRequest(
+          "/rides/status/${ride.id}",
+          "GET",
+          null,
+          token
+        );
+        setCurrentRide(data);
+      } catch (err) {
+        console.log("Error " + err.message);
+      }
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => clearInterval(interval);
+  }, [ride]);
+
+  useEffect(() => {
+    if (currentRide && currentRide.status == "COMPLETED") {
+      onComplete && onComplete();
+    }
+  }, [currentRide, onComplete]);
+
   if (!currentRide) return null;
   // Ride status steps for progress bar
   const statusSteps = [

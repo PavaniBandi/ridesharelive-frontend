@@ -17,10 +17,71 @@ export default function RideBookingForm({ onBook }) {
   const office = "HitechCity";
   const [recent, setRecent] = useState([]);
 
+  useEffect(() => {
+    const rec = JSON.parse(localStorage.getItem("recentLocations") || "[]");
+    setRecent(rec);
+  }, []);
+  // pickup3,drop3
+  //[pickup1,drop1,pickup2,drop2]
+  const saveRecent = (pickup, drop) => {
+    let rec = JSON.parse(localStorage.getItem("recentLocations") || "[]");
+    rec = rec.filter((l) => l.pickup != pickup || l.drop !== drop);
+    rec.unshift({ pickup, drop });
+    if (rec.length > 5) rec = rec.slice(0, 5);
+    localStorage.setItem("recentLocations", JSON.stringify(rec));
+    setRecent(rec);
+  };
+
+  useEffect(() => {
+    if (pickup && drop) {
+      const baseFare = 50;
+      const typeMultiplier =
+        rideType === "XL"
+          ? 2
+          : rideType === "Premium"
+          ? 1.5
+          : rideType === "Comfort"
+          ? 1.2
+          : 1;
+      setFare(baseFare * typeMultiplier);
+      setEstimate("15-20 min");
+    } else {
+      setFare(null);
+      setEstimate(null);
+    }
+  }, [pickup, drop, rideType]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Please Login");
+      return;
+    }
+    try {
+      const ride = {
+        pickupLocation: pickup,
+        dropLocation: drop,
+        fare,
+        status: "REQUESTED",
+        rideType,
+        paymentMode,
+      };
+      await apiRequest("/rides/book", "POST", ride, token);
+      setSuccess("Ride Booked Successfully");
+      setPickup("");
+      setDrop("");
+      setFare(null);
+      setEstimate(null);
+      setRideType("Economy");
+      setPaymentMode("Cash");
+      saveRecent(pickup, drop);
+      onBook && onBook();
+    } catch (err) {
+      setError("Error" + err.message);
+    }
   };
 
   return (
